@@ -1,5 +1,6 @@
 import os
 import requests
+import logging
 
 
 class BaseAPI:
@@ -41,7 +42,7 @@ class BaseAPI:
             "Content-Type": "application/json",
         }
 
-    def _make_request(self, method, endpoint, data=None, params=None):
+    def _make_request(self, method, endpoint, data=None, params=None, timeout=10):
         """
         Make an HTTP request to the API.
 
@@ -50,14 +51,37 @@ class BaseAPI:
             endpoint (str): API endpoint (relative to the base URL).
             data (dict): JSON payload for the request.
             params (dict): Query parameters for the request.
+            timeout (int): Timeout for the request in seconds. Defaults to 10.
 
         Returns:
             dict: JSON response from the API.
+
+        Raises:
+            ValueError: If the response cannot be parsed as JSON.
+            requests.exceptions.RequestException: For any request-related errors.
         """
         url = f"{self.base_url}/{endpoint}"
         headers = self._get_headers()
-        response = requests.request(
-            method, url, headers=headers, json=data, params=params
-        )
-        response.raise_for_status()
-        return response.json()
+
+        try:
+            # Make the HTTP request
+            response = requests.request(
+                method, url, headers=headers, json=data, params=params, timeout=timeout
+            )
+
+            # Raise HTTP errors if status_code indicates an issue
+            response.raise_for_status()
+
+        except requests.exceptions.Timeout:
+            logging.error(f"Request to {url} timed out.")
+            raise
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Request to {url} failed: {str(e)}")
+            raise
+
+        try:
+            # Parse and return JSON response
+            return response.json()
+        except ValueError:
+            logging.error(f"Failed to parse JSON from response: {response.text}")
+            raise ValueError("Failed to parse response as JSON.") from None

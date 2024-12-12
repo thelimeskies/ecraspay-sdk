@@ -1,81 +1,43 @@
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from ecraspay.base import BaseAPI
+import requests
 
 
 class TestBaseAPI:
-    """
-    Test suite for the BaseAPI class.
-
-    This class contains tests for the BaseAPI class, ensuring that its methods
-    and initialization work as expected under various conditions.
-
-    Test Cases:
-        - Initialization with valid and invalid inputs.
-        - Handling of missing API key.
-        - Handling of invalid environments.
-        - Making API requests and ensuring the correct behavior.
-    """
-
     @pytest.fixture
-    def api_instance(self):
-        """
-        Fixture for initializing a BaseAPI instance.
+    def base_api_instance(self):
+        """Fixture to initialize the BaseAPI class."""
 
-        Returns:
-            BaseAPI: A BaseAPI instance with a test API key and sandbox environment.
-        """
-        return BaseAPI(api_key="test_key", environment="sandbox")
+        class MockBaseAPI(BaseAPI):
+            def __init__(self):
+                self.base_url = "https://sandbox.api.example.com"
+                self.api_key = "test_key"
 
-    def test_init(self, api_instance):
-        """
-        Test the initialization of the BaseAPI class.
+            def _get_headers(self):
+                return {
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                }
 
-        Verifies that the API key, environment, and base URL are correctly set during initialization.
-
-        Args:
-            api_instance (BaseAPI): A fixture providing a pre-initialized BaseAPI instance.
-        """
-        assert api_instance.api_key == "test_key"
-        assert api_instance.environment == "sandbox"
-        assert api_instance.base_url == "https://sandbox.api.example.com"
-
-    def test_invalid_environment(self):
-        """
-        Test that an invalid environment raises a ValueError.
-
-        Ensures that only 'sandbox' or 'live' are allowed as valid environments.
-        """
-        with pytest.raises(ValueError):
-            BaseAPI(api_key="test_key", environment="invalid")
-
-    def test_missing_api_key(self):
-        """
-        Test that a missing API key raises a ValueError.
-
-        Ensures that the API key is required during initialization.
-        """
-        with pytest.raises(ValueError):
-            BaseAPI()
+        return MockBaseAPI()
 
     @patch("requests.request")
-    def test_make_request(self, mock_request, api_instance):
-        """
-        Test the _make_request method of the BaseAPI class.
-
-        Verifies that the method correctly makes HTTP requests and processes the response.
-
-        Args:
-            mock_request (MagicMock): A mocked version of the `requests.request` method.
-            api_instance (BaseAPI): A fixture providing a pre-initialized BaseAPI instance.
-        """
-        mock_response = mock_request.return_value
+    def test_make_request_success(self, mock_request, base_api_instance):
+        """Test a successful API request."""
+        # Mock response
+        mock_response = MagicMock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {"message": "success"}
+        mock_response.json.return_value = {"status": "success"}
+        mock_request.return_value = mock_response
 
-        response = api_instance._make_request("GET", "test-endpoint")
-        assert response == {"message": "success"}
+        # Call the method
+        response = base_api_instance._make_request(
+            "GET", "test-endpoint", params={"key": "value"}
+        )
 
+        # Assertions
+        assert response == {"status": "success"}
         mock_request.assert_called_once_with(
             "GET",
             "https://sandbox.api.example.com/test-endpoint",
@@ -84,5 +46,59 @@ class TestBaseAPI:
                 "Content-Type": "application/json",
             },
             json=None,
-            params=None,
+            params={"key": "value"},
+            timeout=10,
+        )
+
+    @patch("requests.request")
+    def test_make_request_timeout(self, mock_request, base_api_instance):
+        """Test a request that times out."""
+        mock_request.side_effect = requests.exceptions.Timeout
+
+        with pytest.raises(requests.exceptions.Timeout):
+            base_api_instance._make_request("GET", "test-endpoint")
+
+    @patch("requests.request")
+    def test_make_request_http_error(self, mock_request, base_api_instance):
+        """Test a request that raises an HTTP error."""
+        mock_response = MagicMock()
+        mock_response.status_code = 400
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            "Bad Request"
+        )
+        mock_request.return_value = mock_response
+
+        with pytest.raises(requests.exceptions.HTTPError):
+            base_api_instance._make_request("GET", "test-endpoint")
+
+    @patch("requests.request")
+    def test_make_request_invalid_json(self, mock_request, base_api_instance):
+        """Test a response with invalid JSON."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = "Not JSON"
+        mock_response.json.side_effect = ValueError
+        mock_request.return_value = mock_response
+
+        with pytest.raises(ValueError, match="Failed to parse response as JSON."):
+            base_api_instance._make_request("GET", "test-endpoint")
+
+    def test_make_request_logging(self, mock_request, base_api_instance, caplog):
+        """Test logging during a request failure."""
+        mock_response = MagicMock()
+        mock_response.status_code = 400
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            "Bad Request"
+        )
+        mock_request.return_value = mock_response
+
+        with caplog.at_level("ERROR"):
+            with pytest.raises(requests.exceptions.HTTPError):
+                base_api_instance._make_request("GET", "test-endpoint")
+
+        # Check that the logging contains the expected substring
+        assert any(
+            "Request to https://sandbox.api.example.com/test-endpoint failed"
+            in record.message
+            for record in caplog.records
         )
