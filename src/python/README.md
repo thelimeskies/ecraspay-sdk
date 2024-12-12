@@ -1,4 +1,7 @@
-# ECRASPAY Python SDK
+[![Test and Deploy Python Wrapper](https://github.com/thelimeskies/ecraspay-sdk/actions/workflows/test-and-deploy-python.yml/badge.svg)](https://github.com/thelimeskies/ecraspay-sdk/actions/workflows/test-and-deploy-python.yml)
+
+
+# ECRASPAY Python SDK [Alpha]
 
 ECRASPAY SDK provides a convenient and Pythonic way to interact with the ECRASPAY API for managing payments and transactions. This package simplifies initiating and managing payments, such as card payments, USSD, bank transfers, and transaction verification.
 
