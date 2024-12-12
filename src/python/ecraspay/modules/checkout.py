@@ -36,7 +36,7 @@ class Checkout(BaseAPI):
         payment_method: str = None,
         customer_phone: str = None,
         metadata: dict = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         """
         Initiate a new transaction.
@@ -77,3 +77,15 @@ class Checkout(BaseAPI):
         }
         payload.update(kwargs)
         return self._make_request("POST", "checkout/initiate", data=payload)
+
+    def verify_transaction(self, transaction_id: str) -> dict:
+        """
+        Verify a transaction.
+
+        Args:
+            transaction_id (str): Transaction ID.
+
+        Returns:
+            dict: API response.
+        """
+        return self._make_request("GET", f"checkout/verify/{transaction_id}")
