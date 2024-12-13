@@ -44,7 +44,7 @@ class Transaction(BaseAPI):
             dict: API response containing transaction details.
         """
         return self._make_request(
-            method="GET", endpoint=f"/third-party/payment/details/{transaction_ref}"
+            method="GET", endpoint=f"/payment/details/{transaction_ref}"
         )
 
     def verify_transaction(self, transaction_ref: str) -> dict:
@@ -58,7 +58,7 @@ class Transaction(BaseAPI):
             dict: API response confirming the transaction status.
         """
         return self._make_request(
-            method="GET", endpoint=f"/third-party/payment/verify/{transaction_ref}"
+            method="GET", endpoint=f"/payment/verify/{transaction_ref}"
         )
 
     def get_transaction_status(self, transaction_ref: str) -> dict:
@@ -72,7 +72,7 @@ class Transaction(BaseAPI):
             dict: API response containing the transaction status.
         """
         return self._make_request(
-            method="GET", endpoint=f"/third-party/payment/status/{transaction_ref}"
+            method="GET", endpoint=f"/payment/status/{transaction_ref}"
         )
 
     def cancel_transaction(self, transaction_ref: str) -> dict:
@@ -86,7 +86,7 @@ class Transaction(BaseAPI):
             dict: API response confirming the transaction cancellation.
         """
         return self._make_request(
-            method="GET", endpoint=f"/third-party/payment/cancel/{transaction_ref}"
+            method="GET", endpoint=f"/payment/cancel/{transaction_ref}"
         )
 
     def initiate_transaction(
@@ -99,7 +99,7 @@ class Transaction(BaseAPI):
         description: str = None,
         fee_bearer: str = None,
         currency: str = "usd",
-        payment_method: str = None,
+        payment_method: str = "card",
         customer_phone: str = None,
         metadata: dict = None,
         **kwargs,
@@ -108,51 +108,39 @@ class Transaction(BaseAPI):
         Initiate a new transaction.
 
         Args:
-            amount (int): Amount to be paid in the smallest currency unit
-                (e.g., cents for USD).
+            amount (int): Amount to be paid (smallest currency unit, e.g., usd for USD).
             payment_reference (str): Unique reference for the transaction.
             customer_name (str): Customer's name.
-            customer_email (str): Customer's email address.
-            redirect_url (str, optional): URL to redirect the customer
-                after payment.
+            customer_email (str): Customer's email.
+            redirect_url (str, optional): URL to redirect the customer after payment.
             description (str, optional): Description of the transaction.
-            fee_bearer (str, optional): Indicates who bears the transaction
-                fee ('customer' or 'merchant').
-            currency (str, optional): Transaction currency code (default: 'usd').
-            payment_method (str, optional): Payment method to use (e.g., 'card').
+            fee_bearer (str, optional): Fee bearer ('customer' or 'merchant').
+            currency (str, optional): Transaction currency (default: 'usd').
+            payment_method (str, optional): Payment method (e.g., 'card').
             customer_phone (str, optional): Customer's phone number.
             metadata (dict, optional): Additional metadata for the transaction.
             **kwargs: Extra parameters to include in the transaction.
 
         Returns:
-            dict: API response containing transaction initiation details.
-
-        Example:
-            response = api.initiate_transaction(
-                amount=1000,
-                payment_reference="txn_67890",
-                customer_name="John Doe",
-                customer_email="johndoe@example.com",
-                metadata={"order_id": "67890"}
-            )
-            print(response)
+            dict: API response.
         """
         payload = {
             key: value
             for key, value in {
                 "amount": amount,
-                "payment_reference": payment_reference,
-                "customer_name": customer_name,
-                "customer_email": customer_email,
-                "redirect_url": redirect_url,
+                "paymentReference": payment_reference,
+                "customerName": customer_name,
+                "customerEmail": customer_email,
+                "redirectUrl": redirect_url,
                 "description": description,
-                "fee_bearer": fee_bearer,
+                "feeBearer": fee_bearer,
                 "currency": currency,
-                "payment_method": payment_method,
-                "customer_phone": customer_phone,
+                "paymentMethods": payment_method,
+                "customerPhoneNumber": customer_phone,
                 "metadata": metadata,
             }.items()
             if value is not None
         }
         payload.update(kwargs)
-        return self._make_request("POST", "checkout/initiate", data=payload)
+
+        return self._make_request("POST", "/payment/initiate", data=payload)

@@ -33,7 +33,7 @@ class Checkout(BaseAPI):
         description: str = None,
         fee_bearer: str = None,
         currency: str = "usd",
-        payment_method: str = None,
+        payment_method: str = "card",
         customer_phone: str = None,
         metadata: dict = None,
         **kwargs,
@@ -62,21 +62,22 @@ class Checkout(BaseAPI):
             key: value
             for key, value in {
                 "amount": amount,
-                "payment_reference": payment_reference,
-                "customer_name": customer_name,
-                "customer_email": customer_email,
-                "redirect_url": redirect_url,
+                "paymentReference": payment_reference,
+                "customerName": customer_name,
+                "customerEmail": customer_email,
+                "redirectUrl": redirect_url,
                 "description": description,
-                "fee_bearer": fee_bearer,
+                "feeBearer": fee_bearer,
                 "currency": currency,
-                "payment_method": payment_method,
-                "customer_phone": customer_phone,
+                "paymentMethods": payment_method,
+                "customerPhoneNumber": customer_phone,
                 "metadata": metadata,
             }.items()
             if value is not None
         }
         payload.update(kwargs)
-        return self._make_request("POST", "checkout/initiate", data=payload)
+
+        return self._make_request("POST", "/payment/initiate", data=payload)
 
     def verify_transaction(self, transaction_id: str) -> dict:
         """
@@ -88,4 +89,6 @@ class Checkout(BaseAPI):
         Returns:
             dict: API response.
         """
-        return self._make_request("GET", f"checkout/verify/{transaction_id}")
+        return self._make_request(
+            "GET", f"/payment/transaction/verify/{transaction_id}"
+        )

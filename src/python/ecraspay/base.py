@@ -21,8 +21,8 @@ class BaseAPI:
 
         # Define base URLs
         self.base_urls = {
-            "sandbox": "https://sandbox.api.example.com",
-            "live": "https://api.example.com",
+            "sandbox": "https://api.merchant.staging.ercaspay.com/api/v1",
+            "live": "https://api.ercaspay.com/api/v1",
         }
 
         # Select the base URL based on the environment
@@ -60,7 +60,7 @@ class BaseAPI:
             ValueError: If the response cannot be parsed as JSON.
             requests.exceptions.RequestException: For any request-related errors.
         """
-        url = f"{self.base_url}/{endpoint}"
+        url = f"{self.base_url}{endpoint}"
         headers = self._get_headers()
 
         try:

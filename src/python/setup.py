@@ -6,6 +6,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "requests >= 2.32.3",
+        "pycryptodome >= 3.11.0",
     ],
     author="Asikhalaye Samuel",
     author_email="samuelasikhalaye@gmail.com",
@@ -16,7 +17,7 @@ setup(
     ],
     python_requires=">=3.6",
     description="A Python wrapper for the ECRAS API.",
-    long_description=open("DOC.md").read(),
+    long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="http://github.com/thelimeskies/ecraspay-sdk/src/python",
 )

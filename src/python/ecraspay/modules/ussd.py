@@ -64,5 +64,5 @@ class USSD(BaseAPI):
         """
         return self._make_request(
             method="GET",
-            endpoint="/third-party/payment/ussd/supported-banks",
+            endpoint="/payment/ussd/supported-banks",
         )

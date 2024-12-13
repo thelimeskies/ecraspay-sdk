@@ -56,7 +56,7 @@ class Card(BaseAPI):
 
         return self._make_request(
             method="POST",
-            endpoint="/third-party/payment/cards/initialize",
+            endpoint="/payment/cards/initialize",
             data=payload,
         )
 
@@ -82,7 +82,7 @@ class Card(BaseAPI):
 
         return self._make_request(
             method="POST",
-            endpoint="/third-party/payment/cards/otp/submit/",
+            endpoint="/payment/cards/otp/submit/",
             data=payload,
         )
 
@@ -106,7 +106,7 @@ class Card(BaseAPI):
 
         return self._make_request(
             method="POST",
-            endpoint="/third-party/payment/cards/otp/resend/",
+            endpoint="/payment/cards/otp/resend/",
             data=payload,
         )
 
@@ -126,7 +126,7 @@ class Card(BaseAPI):
         """
         return self._make_request(
             method="GET",
-            endpoint=f"/third-party/payment/cards/details/{transaction_ref}",
+            endpoint=f"/payment/cards/details/{transaction_ref}",
         )
 
     def verify_card_payment(self, transaction_ref: str) -> dict:
@@ -149,6 +149,6 @@ class Card(BaseAPI):
 
         return self._make_request(
             method="POST",
-            endpoint="/third-party/payment/cards/verify/",
+            endpoint="/payment/cards/verify/",
             data=payload,
         )

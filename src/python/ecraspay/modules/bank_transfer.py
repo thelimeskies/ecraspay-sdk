@@ -1,13 +1,16 @@
 """
-This module provides the BankTransfer class for interacting with the bank transfer API endpoints.
+This module provides the BankTransfer class for interacting with the bank transfer
+API endpoints.
 
 Example:
     from ecraspay.bank_transfer import BankTransfer
 
     api = BankTransfer(api_key="your_api_key", environment="sandbox")
-    
+
     # Initialize a bank transfer
-    response = api.initialize_bank_transfer(transaction_ref="txn_12345")
+    response = api.initialize_bank_transfer(
+        transaction_ref="txn_12345"
+    )
     print(response)
 """
 
@@ -30,13 +33,18 @@ class BankTransfer(BaseAPI):
             transaction_ref (str): Unique reference for the transaction.
 
         Returns:
-            dict: The API response containing the bank account details for the transfer.
+            dict: The API response containing the bank account details
+            for the transfer.
 
         Example:
-            response = api.initialize_bank_transfer(transaction_ref="txn_12345")
+            response = api.initialize_bank_transfer(
+                transaction_ref="txn_12345"
+            )
             print(response)
         """
         return self._make_request(
             method="GET",
-            endpoint=f"/third-party/payment/bank-transfer/request-bank-account/{transaction_ref}",
+            endpoint=(
+                f"/payment/bank-transfer/request-bank-account/" f"{transaction_ref}"
+            ),
         )
